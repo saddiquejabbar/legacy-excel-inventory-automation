@@ -1,2 +1,3 @@
 Trigger the one-time standalone repository import.
 Retry: workflow files will be installed separately.
+CI verification after migration complete.
