@@ -3,10 +3,6 @@ name: Import standalone inventory workflow
 on:
   pull_request:
     types: [opened, reopened, synchronize]
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/import-inventory.yml"
 
 permissions:
   contents: write
@@ -31,33 +27,7 @@ jobs:
           SOURCE_SHA="025e448da7bf0db7f3a1eae50ff094c16ec85a7b"
           git clone --depth 1 --branch main https://github.com/saddiquejabbar/post-site-closure.git /tmp/post-site-closure
           test "$(git -C /tmp/post-site-closure rev-parse HEAD)" = "$SOURCE_SHA"
-          rsync -a --delete --exclude='.git' /tmp/post-site-closure/inventory-automation/ ./
-          mkdir -p .github/workflows
-          cat > .github/workflows/tests.yml <<'YAML'
-          name: Inventory automation tests
-
-          on:
-            push:
-            pull_request:
-
-          permissions:
-            contents: read
-
-          jobs:
-            test:
-              runs-on: ubuntu-latest
-              steps:
-                - uses: actions/checkout@v4
-                - uses: actions/setup-python@v5
-                  with:
-                    python-version: "3.11"
-                    cache: pip
-                    cache-dependency-path: requirements-dev.txt
-                - run: python -m pip install --upgrade pip
-                - run: pip install -r requirements-dev.txt
-                - run: python -m compileall -q .
-                - run: pytest -q
-          YAML
+          rsync -a --delete --exclude='.git' --exclude='.github' /tmp/post-site-closure/inventory-automation/ ./
 
       - name: Validate the standalone copy
         run: |
@@ -72,6 +42,6 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
+          git add -A -- ':!.github'
           git commit -m "Import standalone Telegram-to-XLSM inventory workflow"
           git push origin HEAD:main
